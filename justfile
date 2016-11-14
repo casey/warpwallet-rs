@@ -36,11 +36,18 @@ version = `sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/v\1/p' Cargo.tom
 publish: no-changes lint clippy
 	git branch | grep '* master'
 	git co -b {{version}}
-	git push github
+	git push upstream
 	git tag -a {{version}} -m {{version}}
-	git push origin --tags
+	git push upstream --tags
 	cargo publish
 	@echo 'Remember to merge the {{version}} branch on GitHub!'
+
+# this is so you open a PR from a single commit without having to create a local branch
+# push master to upstream remote as a branch named GITHUB-BRANCH
+push GITHUB-BRANCH:
+	git branch | grep '* master'
+	git diff --no-ext-diff --quiet --exit-code
+	git push upstream master:refs/heads/{{GITHUB-BRANCH}}
 
 sloc:
 	@cat src/*.rs | sed '/^\s*$/d' | wc -l
