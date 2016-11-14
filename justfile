@@ -61,7 +61,6 @@ no-changes:
 	! grep --color -En 'FIXME|TODO' src/*.rs examples/*.rs
 	echo Checking for long lines...
 	! grep --color -En '.{100}' src/*.rs examples/*.rs
-	rustfmt --write-mode diff
 
 install-rust:
 	curl https://sh.rustup.rs -sSf | sh
