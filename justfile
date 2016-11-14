@@ -94,7 +94,7 @@ run-examples:
 # clean up feature branch named BRANCH
 done BRANCH:
 	git checkout {{BRANCH}}
-	git pull --rebase origin master
+	git pull --rebase upstream master
 	git checkout master
-	git pull --rebase origin master
+	git pull --rebase upstream master
 	git branch -d {{BRANCH}}
