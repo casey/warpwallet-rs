@@ -3,6 +3,9 @@ rust boilerplate
 
 A batteries-included template for rust projects.
 
+[![crates.io version](https://img.shields.io/crates/v/rust-boilerplate.svg)](https://crates.io/crates/rust-boilerplate)
+[![Build Status](https://travis-ci.org/casey/rust-boilerplate.svg?branch=master)](https://travis-ci.org/casey/rust-boilerplate)
+
 Features
 --------
 
