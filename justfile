@@ -3,6 +3,9 @@ default: watch-test
 test:
 	cargo test --release
 
+test-spec:
+	cargo test --release spec -- --nocapture
+
 test-backtrace:
 	RUST_BACKTRACE=1 cargo test
 

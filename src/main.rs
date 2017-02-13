@@ -332,9 +332,9 @@ fn spec() {
   assert_eq!(spec.params.pbkdf2c, PBKDF2_C);
   assert_eq!(spec.vectors.len(),  12);
 
-  fn check_seed(n: usize, expected: Seed, actual: Seed) {
+  fn check_seed(i: usize, expected: Seed, actual: Seed) {
     if expected == actual {
-      println!("  seed {} okay:    {}", n, actual);
+      println!("s{}:         {}", i + 1, actual);
     } else {
       assert_eq!(expected, actual);
     }
@@ -343,7 +343,9 @@ fn spec() {
   for (i, vector) in spec.vectors.iter().enumerate() {
     let passphrase = &vector.passphrase;
     let salt = &vector.salt;
-    println!("testing vector {}: passphrase={} salt={}", i, passphrase, salt);
+    println!("testing vector {}:", i);
+    println!("passphrase: {}", passphrase);
+    println!("salt:       {}", salt);
     let seeds = seeds(passphrase.as_bytes(), salt.as_bytes());
     check_seed(0, Seed::from_hex(&vector.seeds.0).unwrap(), seeds.0);
     check_seed(1, Seed::from_hex(&vector.seeds.1).unwrap(), seeds.1);
