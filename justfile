@@ -17,7 +17,7 @@ build:
 	cargo build
 
 watch-test:
-	cargo watch
+	cargo watch clear test
 
 watch COMMAND='test':
 	cargo watch {{COMMAND}}
