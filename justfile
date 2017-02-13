@@ -1,7 +1,7 @@
 default: watch-test
 
 test:
-	cargo test
+	cargo test --release
 
 test-backtrace:
 	RUST_BACKTRACE=1 cargo test
@@ -103,3 +103,6 @@ done BRANCH:
 
 update-boilerplate:
 	git pull --rebase=false boilerplate master
+
+update-spec:
+	curl 'https://raw.githubusercontent.com/keybase/warpwallet/master/test/spec.json' > spec.json
