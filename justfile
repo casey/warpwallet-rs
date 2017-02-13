@@ -100,3 +100,6 @@ done BRANCH:
 	git checkout master
 	git pull --rebase upstream master
 	git branch -d {{BRANCH}}
+
+update-boilerplate:
+	git pull --rebase=false boilerplate master
