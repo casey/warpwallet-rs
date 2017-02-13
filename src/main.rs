@@ -1,24 +1,12 @@
 extern crate clap;
 
-#[macro_use] extern crate error_chain;
+#[macro_use]
+extern crate error_chain;
+
+#[macro_use]
+extern crate brev;
 
 use clap::{App, AppSettings};
-use std::io::prelude::*;
-
-macro_rules! warn {
-  ($($arg:tt)*) => {{
-    extern crate std;
-    use std::io::prelude::*;
-    let _ = writeln!(&mut std::io::stderr(), $($arg)*);
-  }};
-}
-macro_rules! die {
-  ($($arg:tt)*) => {{
-    extern crate std;
-    warn!($($arg)*);
-    process::exit(-1)
-  }};
-}
 
 mod error {
   error_chain!{
@@ -34,10 +22,12 @@ fn run<I, T>(args: I) -> Result<()>
   where I: IntoIterator<Item = T>,
         T: Into<std::ffi::OsString> + Clone,
 {
-  let matches = App::new(env!("CARGO_PKG_NAME"))
+  let _ = App::new(env!("CARGO_PKG_NAME"))
     .version(concat!("v", env!("CARGO_PKG_VERSION")))
     .author(env!("CARGO_PKG_AUTHORS"))
-    .about(concat!(env!("CARGO_PKG_DESCRIPTION"), " - ", env!("CARGO_PKG_HOMEPAGE")))
+    .about(concat!(env!("CARGO_PKG_DESCRIPTION"),
+                   " - ",
+                   env!("CARGO_PKG_HOMEPAGE")))
     .setting(AppSettings::ColoredHelp)
     .get_matches_from_safe(args)?;
 
@@ -48,10 +38,10 @@ fn main() {
   if let Err(ref e) = run(std::env::args()) {
     if let Error(ErrorKind::Clap(ref clap_error), _) = *e {
       use clap::ErrorKind::{HelpDisplayed, VersionDisplayed};
-      write!(&mut std::io::stderr(), "{}", clap_error);
+      brev::err(clap_error);
       match clap_error.kind {
         HelpDisplayed | VersionDisplayed => return,
-        _ => std::process::exit(1)
+        _ => std::process::exit(1),
       }
     }
 
@@ -66,5 +56,13 @@ fn main() {
     }
 
     std::process::exit(1);
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  #[test]
+  fn no_op_test() {
+    assert!(::run(&["hello"]).is_ok())
   }
 }
