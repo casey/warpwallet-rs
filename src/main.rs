@@ -1,4 +1,5 @@
 extern crate clap;
+extern crate regex;
 
 #[macro_use]
 extern crate error_chain;
@@ -6,7 +7,8 @@ extern crate error_chain;
 #[macro_use]
 extern crate brev;
 
-use clap::{App, AppSettings};
+use clap::{App, AppSettings, Arg};
+use regex::Regex;
 
 mod error {
   error_chain!{
@@ -22,14 +24,55 @@ fn run<I, T>(args: I) -> Result<()>
   where I: IntoIterator<Item = T>,
         T: Into<std::ffi::OsString> + Clone,
 {
-  let _ = App::new(env!("CARGO_PKG_NAME"))
+  let matches = App::new(env!("CARGO_PKG_NAME"))
     .version(concat!("v", env!("CARGO_PKG_VERSION")))
     .author(env!("CARGO_PKG_AUTHORS"))
     .about(concat!(env!("CARGO_PKG_DESCRIPTION"),
                    " - ",
                    env!("CARGO_PKG_HOMEPAGE")))
     .setting(AppSettings::ColoredHelp)
+    .arg(Arg::with_name("salt")
+         .short("s")
+         .long("salt")
+         .takes_value(true)
+         .required(true))
+    .arg(Arg::with_name("passphrase")
+         .short("p")
+         .long("passphrase")
+         .takes_value(true)
+         .required(true))
+    .arg(Arg::with_name("mnemonic-length")
+         .short("l")
+         .long("mnemonic-length")
+         .takes_value(true)
+         .required(false))
     .get_matches_from_safe(args)?;
+
+  let passphrase = matches.value_of("passphrase").unwrap();
+  let salt = matches.value_of("salt").unwrap();
+
+  if passphrase.len() == 0 {
+    die!("passphrase may not be empty");
+  }
+
+  if salt.len() == 0 {
+    die!("salt may not be empty");
+  }
+
+  let salt_re = Regex::new("^.+@.+[.].+$").unwrap();
+
+  if !salt_re.is_match(salt) {
+    die!("salt must be an email address, or at least match `{}`", salt_re.as_str());
+  }
+
+  let passphrase_re = Regex::new("^[ -~]+$").unwrap();
+
+  if !passphrase_re.is_match(passphrase) {
+    die!("passphrase must match `{}`", passphrase_re.as_str());
+  }
+
+  println!("salt: {}", salt);
+  println!("passphrase: {}", passphrase);
 
   Ok(())
 }
