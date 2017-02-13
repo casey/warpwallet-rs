@@ -1,9 +1,16 @@
 [package]
-name        = "rust-boilerplate"
+name        = "boilerplate"
 version     = "0.0.0"
-description = "🔋 A template for rust projects"
+description = "A template for rust binaries"
 authors     = ["Casey Rodarmor <casey@rodarmor.com>"]
 license     = "WTFPL OR MIT OR Apache-2.0"
-homepage    = "https://github.com/casey/rust-boilerplate"
+homepage    = "https://github.com/casey/boilerplate"
 
 [dependencies]
+error-chain = "0.9.0"
+clap        = "2.0.0"
+#ansi_term     = "0.9.0"
+#atty          = "0.2.1"
+#lazy_static   = "0.2.1"
+#regex         = "0.1.77"
+#tempdir       = "0.3.5"

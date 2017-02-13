@@ -1,4 +1,4 @@
-default: test
+default: watch-test
 
 test:
 	cargo test
@@ -15,6 +15,9 @@ check:
 
 build:
 	cargo build
+
+watch-test:
+	cargo watch
 
 watch COMMAND='test':
 	cargo watch {{COMMAND}}
