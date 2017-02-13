@@ -1,4 +1,4 @@
-default: watch-test
+default: test-spec
 
 test:
 	cargo test --release

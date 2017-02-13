@@ -1,12 +1,14 @@
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate error_chain;
-extern crate rustc_serialize;
+extern crate bitcoin;
 extern crate brev;
 extern crate clap;
 extern crate regex;
 extern crate ring;
 extern crate ring_pwhash;
+extern crate rustc_serialize;
 extern crate serde_json;
+extern crate secp256k1;
 
 const SCRYPT_N: u8    = 18;
 const SCRYPT_P: u32   = 1;
@@ -32,10 +34,35 @@ error_chain!{
   }
 }
 
+use bitcoin::util::address::Privkey;
+use bitcoin::util::base58::ToBase58;
 use clap::{App, AppSettings, Arg};
 use regex::Regex;
 use rustc_serialize::hex::{FromHex, FromHexError};
+use secp256k1::key::SecretKey;
 use std::ops::BitXor;
+
+struct Input {
+  passphrase: Vec<u8>,
+  salt:       Vec<u8>,
+}
+
+impl Input {
+  fn new(passphrase: &str, salt: &str) -> Input {
+    Input {
+      passphrase: passphrase.as_bytes().to_vec(),
+      salt:       salt.as_bytes().to_vec(),
+    }
+  }
+}
+
+struct Output {
+  s1:          Seed,
+  s2:          Seed,
+  s3:          Seed,
+  address:     String,
+  private_key: String,
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct Seed {
@@ -223,12 +250,35 @@ fn pbkdf2(passphrase: &[u8], salt: &[u8]) -> Seed {
   seed
 }
 
-fn seeds(passphrase: &[u8], salt: &[u8]) -> (Seed, Seed, Seed) {
-  let s1 = scrypt(passphrase, salt);
-  let s2 = pbkdf2(passphrase, salt);
+fn seeds(input: Input) -> (Seed, Seed, Seed) {
+  let s1 = scrypt(&input.passphrase, &input.salt);
+  let s2 = pbkdf2(&input.passphrase, &input.salt);
   let s3 = s1 ^ s2;
 
   (s1, s2, s3)
+}
+
+fn private_key(seed: Seed) -> Privkey {
+  use bitcoin::network::constants::Network;
+  Privkey::from_key(
+    Network::Bitcoin,
+    SecretKey::from_slice(&secp256k1::Secp256k1::new(), &seed.bytes).unwrap(),
+    false,
+  )
+}
+
+fn derive(input: Input) -> Output {
+  let (s1, s2, s3) = seeds(input);
+
+  let key = private_key(s3);
+
+  Output {
+    s1:          s1,
+    s2:          s2,
+    s3:          s3,
+    private_key: key.to_base58(),
+    address:     key.to_address(&secp256k1::Secp256k1::new()).unwrap().to_base58(),
+  }
 }
 
 fn run<I, T>(args: I) -> Result<(), Error>
@@ -238,9 +288,9 @@ fn run<I, T>(args: I) -> Result<(), Error>
 
   let options = parse_arguments(args)?;
 
-  let (_s1, _s2, _s3) = seeds(options.passphrase.as_bytes(), options.salt.as_bytes());
+  let input = Input::new(&options.passphrase, &options.salt);
 
-  // keypair = generate_bitcoin_keypair(s3)
+  let _output = derive(input);
 
   Ok(())
 }
@@ -341,15 +391,16 @@ fn spec() {
   }
 
   for (i, vector) in spec.vectors.iter().enumerate() {
-    let passphrase = &vector.passphrase;
-    let salt = &vector.salt;
+    let input = Input::new(&vector.passphrase, &vector.salt);
     println!("testing vector {}:", i);
-    println!("passphrase: {}", passphrase);
-    println!("salt:       {}", salt);
-    let seeds = seeds(passphrase.as_bytes(), salt.as_bytes());
-    check_seed(0, Seed::from_hex(&vector.seeds.0).unwrap(), seeds.0);
-    check_seed(1, Seed::from_hex(&vector.seeds.1).unwrap(), seeds.1);
-    check_seed(2, Seed::from_hex(&vector.seeds.2).unwrap(), seeds.2);
+    println!("passphrase: {:?}", &vector.passphrase);
+    println!("salt:       {:?}", &vector.salt);
+    let output = derive(input);
+    check_seed(0, Seed::from_hex(&vector.seeds.0).unwrap(), output.s1);
+    check_seed(1, Seed::from_hex(&vector.seeds.1).unwrap(), output.s2);
+    check_seed(2, Seed::from_hex(&vector.seeds.2).unwrap(), output.s3);
+    assert_eq!(vector.keys.private, output.private_key);
+    assert_eq!(vector.keys.public,  output.address);
     println!();
   }
 }

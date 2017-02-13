@@ -24,3 +24,5 @@ todo
 - test against provided test vectors
 - derive a hd wallet mnemonic
 - should i make it slower? --incompatible mode?
+- derive with the same codepath as test
+- end to end test against spec
