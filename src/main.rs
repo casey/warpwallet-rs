@@ -20,7 +20,12 @@ mod error {
 
 use error::*;
 
-fn run<I, T>(args: I) -> Result<()>
+struct Success {
+  passphrase: String,
+  salt: String,
+}
+
+fn run<I, T>(args: I) -> Result<Success>
   where I: IntoIterator<Item = T>,
         T: Into<std::ffi::OsString> + Clone,
 {
@@ -74,7 +79,10 @@ fn run<I, T>(args: I) -> Result<()>
   println!("salt: {}", salt);
   println!("passphrase: {}", passphrase);
 
-  Ok(())
+  Ok(Success{
+    salt:       salt.to_string(),
+    passphrase: passphrase.to_string(),
+  })
 }
 
 fn main() {
@@ -106,6 +114,14 @@ fn main() {
 mod tests {
   #[test]
   fn no_op_test() {
-    assert!(::run(&["hello"]).is_ok())
+    match ::run(&["warpwallet", "--passphrase", "foo", "--salt", "foo@bar.com"]) {
+      Ok(success) => {
+        assert_eq!(success.passphrase, "foo");
+        assert_eq!(success.salt, "foo@bar.com");
+      }
+      Err(err) => {
+        panic!(err)
+      }
+    }
   }
 }
