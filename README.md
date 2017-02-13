@@ -1,8 +1,10 @@
-boilerplate
-===========
+warpwallet
+==========
 
 [![crates.io
-version](https://img.shields.io/crates/v/boilerplate.svg)](https://crates.io/crates/boilerplate)
-[![Build Status](https://travis-ci.org/casey/boilerplate.svg?branch=master)](https://travis-ci.org/casey/boilerplate)
+version](https://img.shields.io/crates/v/warpwallet.svg)](https://crates.io/crates/warpwallet)
+[![Build Status](https://travis-ci.org/casey/warpwallet.svg?branch=master)](https://travis-ci.org/casey/warpwallet)
 
-A batteries-included template for rust binaries.
+A rust implementation of [WarpWallet](https://keybase.io/warp). Written by someone who barely
+understands how cryptography works, so you probably shouldn't use it.
+
